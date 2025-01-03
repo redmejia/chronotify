@@ -5,10 +5,14 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,12 +23,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.binarystack01.chronotify.components.animation.brushLinearGradient
+import com.binarystack01.chronotify.components.textandtime.TextDisplay
 import com.binarystack01.chronotify.ui.theme.ChronotifyTheme
 import kotlinx.coroutines.delay
 import java.time.LocalTime
@@ -39,67 +45,45 @@ class MainActivity : ComponentActivity() {
                 darkTheme = true
             ) {
                 val animatedBrush = brushLinearGradient()
-
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     Clock(
-                        notifyMsg = { currentTime ->
-                            Text(
-                                buildAnnotatedString {
-                                    withStyle(
-                                        SpanStyle(
-                                            brush = animatedBrush,
-                                            fontSize = 40.sp
-                                        )
-                                    ) {
-                                        append("kjk\n\n")
-                                    }
-                                    append("\n")
-                                    withStyle(
-                                        SpanStyle(
-                                            brush = animatedBrush,
-                                            fontSize = 30.sp
-                                        )
-                                    ) {
-                                        append("Happy Learning\n\n")
-                                        append("Happy Coding\n\n")
-                                        append("and\n\n")
-                                        append("Happy Hacking\n\n")
-                                    }
-                                    append("\n\n")
-                                    withStyle(
-                                        SpanStyle(
-                                            fontSize = 30.sp
-                                        )
-                                    ) {
-                                        append("\uD83C\uDF89 \uD83C\uDF8A")
-                                    }
-                                    append("\n\n")
-                                    withStyle(
-                                        SpanStyle(
-                                            brush = animatedBrush,
-                                            fontSize = 30.sp
-                                        )
-                                    ) {
-                                        append("${currentTime.value.hour}: ${currentTime.value.minute}: ${currentTime.value.second}")
-                                    }
-                                },
-                                textAlign = TextAlign.Center
+                        header = {
+                            TextDisplay(
+                                text = "Chronotify",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    brush = animatedBrush,
+                                    fontSize = 65.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        notifyMsg = {
+                            TextDisplay(
+                                text = "Learn, code and hack",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    brush = animatedBrush,
+                                    fontSize = 40.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         },
                         timeNow = { currentTime ->
-                            Text(buildAnnotatedString {
-                                withStyle(
-                                    SpanStyle(
-                                        brush = animatedBrush,
-                                        fontSize = 65.sp
-                                    )
-                                ) {
-                                    append("Chronotify\n\n\n")
-                                    append("${currentTime.value.hour}: ${currentTime.value.minute}: ${currentTime.value.second}")
-                                }
-                            }, textAlign = TextAlign.Center)
+                            TextDisplay(
+                                text = "${currentTime.value.hour}: " +
+                                        "${currentTime.value.minute}:" +
+                                        " ${currentTime.value.second}",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    brush = animatedBrush,
+                                    fontSize = 50.sp
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
                         },
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -111,7 +95,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Clock(
-    notifyMsg: @Composable (MutableState<LocalTime>) -> Unit,
+    header: @Composable () -> Unit,
+    notifyMsg: @Composable () -> Unit,
     timeNow: @Composable (MutableState<LocalTime>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -120,35 +105,47 @@ fun Clock(
     ) {
         Column(
             modifier = modifier
+                .padding(horizontal = 8.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
 
-            val newYearTime = LocalTime.of(0, 0)
+            val selectedTime = LocalTime.of(0, 4)
             val currentTime = remember { mutableStateOf(LocalTime.now()) }
 
-            val happyNewYear = remember { mutableStateOf(false) }
+            val showMessage = remember { mutableStateOf(false) }
 
             LaunchedEffect(true) {
                 while (true) {
                     currentTime.value = LocalTime.now()
-                    if (currentTime.value.hour == newYearTime.hour
-                        && currentTime.value.minute == newYearTime.minute
+                    if (currentTime.value.hour == selectedTime.hour
+                        && currentTime.value.minute == selectedTime.minute
                     ) {
                         Log.d("ECHO", "PASS: ${currentTime.value}")
-                        happyNewYear.value = true
+                        showMessage.value = true
                         // break
                     }
                     Log.d("ECHO", "COUNTING: ${currentTime.value}")
                     delay(1000)
                 }
             }
-            if (happyNewYear.value) {
-                notifyMsg(currentTime)
-            } else {
-                timeNow(currentTime)
+            header()
+            if (showMessage.value) {
+                notifyMsg()
             }
+            timeNow(currentTime)
+            val animatedBrush = brushLinearGradient()
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White
+                ),
+                border = BorderStroke(width = 2.dp, brush = animatedBrush),
+                onClick = {}
+            )
+            { Text("Create", fontSize = 20.sp, fontWeight = FontWeight.Medium) }
         }
     }
 }
