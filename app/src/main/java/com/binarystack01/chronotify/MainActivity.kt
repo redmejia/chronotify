@@ -152,14 +152,3 @@ fun Clock(
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    ChronotifyTheme(
-//        darkTheme = true
-//    ) {
-//        Clock("Header")
-//    }
-//}
